@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -50,6 +51,17 @@ public class BookService {
         return bookRepository.findAll(pageable);
     }
 
+    /**
+     * Get all books its price is lower than <i>priceThreshold</i> parameter.
+     *
+     * @param pageable the pagination information
+     * @return the list of entities
+     */
+    @Transactional(readOnly = true)
+    public Page<Book> findAllEqualOrLessThan(Pageable pageable, BigDecimal priceThreshold) {
+        log.debug("Request to get all Books its price is under " + priceThreshold);
+        return bookRepository.findBooksByPriceIsLessThanEqual(pageable,priceThreshold);
+    }
 
     /**
      * Get one book by id.

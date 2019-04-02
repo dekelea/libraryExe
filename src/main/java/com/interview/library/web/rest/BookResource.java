@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -87,6 +88,20 @@ public class BookResource {
     public ResponseEntity<List<Book>> getAllBooks(Pageable pageable) {
         log.debug("REST request to get a page of Books");
         Page<Book> page = bookService.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/books");
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * GET  /books : get all the books.
+     *
+     * @param pageable the pagination information
+     * @return the ResponseEntity with status 200 (OK) and the list of books in body
+     */
+    @GetMapping(value = "/books",params = "maxPrice")
+    public ResponseEntity<List<Book>> getAllBooks(Pageable pageable, @RequestParam BigDecimal maxPrice) {
+        log.debug("REST request to get a page of Books with price lower than:" + maxPrice);
+        Page<Book> page = bookService.findAllEqualOrLessThan(pageable,maxPrice);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/books");
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
