@@ -16,6 +16,7 @@ import { BookService } from './book.service';
     templateUrl: './book.component.html'
 })
 export class BookComponent implements OnInit, OnDestroy {
+    readonly MAX_CHEAP_BOOK_PRICE = 20;
     currentAccount: any;
     books: IBook[];
     error: any;
@@ -29,6 +30,7 @@ export class BookComponent implements OnInit, OnDestroy {
     predicate: any;
     previousPage: any;
     reverse: any;
+    private _filterOnlyCheapBooks = false;
 
     constructor(
         protected bookService: BookService,
@@ -49,12 +51,9 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     loadAll() {
+        const requestParameters = this.prepareLoadAllRequestParams();
         this.bookService
-            .query({
-                page: this.page - 1,
-                size: this.itemsPerPage,
-                sort: this.sort()
-            })
+            .query(requestParameters)
             .subscribe(
                 (res: HttpResponse<IBook[]>) => this.paginateBooks(res.body, res.headers),
                 (res: HttpErrorResponse) => this.onError(res.message)
@@ -128,4 +127,31 @@ export class BookComponent implements OnInit, OnDestroy {
     protected onError(errorMessage: string) {
         this.jhiAlertService.error(errorMessage, null, null);
     }
+
+    showCheapBooksToggled(showCheapBooks: any) {
+        this.filterOnlyCheapBooks = showCheapBooks.currentTarget.checked;
+        this.loadAll();
+    }
+
+    private prepareLoadAllRequestParams() {
+        const requestParameters = {
+            page: this.page - 1,
+            size: this.itemsPerPage,
+            sort: this.sort(),
+        } as any;
+
+        if (this.filterOnlyCheapBooks) {
+            requestParameters.maxPrice = this.MAX_CHEAP_BOOK_PRICE;
+        }
+        return requestParameters;
+    }
+
+    get filterOnlyCheapBooks(): boolean {
+        return this._filterOnlyCheapBooks;
+    }
+
+    set filterOnlyCheapBooks(value: boolean) {
+        this._filterOnlyCheapBooks = value;
+    }
+
 }
