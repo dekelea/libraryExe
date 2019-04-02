@@ -52,15 +52,16 @@ public class BookService {
     }
 
     /**
-     * Get all books its price is lower than <i>priceThreshold</i> parameter.
+     * Get all books where the price is equal or lower than <i>maxBookPrice</i> parameter.
      *
      * @param pageable the pagination information
+     * @param maxBookPrice max books price
      * @return the list of entities
      */
     @Transactional(readOnly = true)
-    public Page<Book> findAllEqualOrLessThan(Pageable pageable, BigDecimal priceThreshold) {
-        log.debug("Request to get all Books its price is under " + priceThreshold);
-        return bookRepository.findBooksByPriceIsLessThanEqual(pageable,priceThreshold);
+    public Page<Book> findAllEqualOrLessThan(Pageable pageable, BigDecimal maxBookPrice) {
+        log.debug("Request to get all Books where the price is equal or lower than  " + maxBookPrice);
+        return bookRepository.findBooksByPriceIsLessThanEqual(pageable,maxBookPrice);
     }
 
     /**
