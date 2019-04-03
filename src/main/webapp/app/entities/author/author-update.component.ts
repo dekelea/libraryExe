@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import * as moment from 'moment';
 import { IAuthor } from 'app/shared/model/author.model';
 import { AuthorService } from './author.service';
 
@@ -13,6 +14,7 @@ import { AuthorService } from './author.service';
 export class AuthorUpdateComponent implements OnInit {
     author: IAuthor;
     isSaving: boolean;
+    birthDateDp: any;
 
     constructor(protected authorService: AuthorService, protected activatedRoute: ActivatedRoute) {}
 
