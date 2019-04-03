@@ -1,16 +1,18 @@
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgModule, ElementRef, Renderer } from '@angular/core';
+import { ElementRef, NgModule, Renderer } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { JhiDataUtils, JhiDateUtils, JhiEventManager, JhiAlertService, JhiParseLinks } from 'ng-jhipster';
+import { JhiAlertService, JhiDataUtils, JhiDateUtils, JhiEventManager, JhiParseLinks } from 'ng-jhipster';
 
 import { AccountService, LoginModalService } from 'app/core';
 import { MockAccountService } from './helpers/mock-account.service';
 import { MockActivatedRoute, MockRouter } from './helpers/mock-route.service';
 import { MockActiveModal } from './helpers/mock-active-modal.service';
 import { MockEventManager } from './helpers/mock-event-manager.service';
+import { MockAlertService } from './helpers/mock-alert.service';
 
+const mockAlertService = new MockAlertService();
 @NgModule({
     providers: [
         DatePipe,
@@ -20,6 +22,10 @@ import { MockEventManager } from './helpers/mock-event-manager.service';
         {
             provide: JhiEventManager,
             useClass: MockEventManager
+        },
+        {
+            provide: JhiAlertService,
+            useValue: mockAlertService
         },
         {
             provide: NgbActiveModal,
@@ -51,7 +57,7 @@ import { MockEventManager } from './helpers/mock-event-manager.service';
         },
         {
             provide: JhiAlertService,
-            useValue: null
+            useValue: mockAlertService
         },
         {
             provide: NgbModal,
