@@ -8,6 +8,7 @@
             </span>
         </button>
     </h2>
+    Show cheap books Only<input id="book-cheapOnly-toggle" type="checkbox" class="spec-booksList__filterOnlyCheapBooks--select" [(ngModel)]="filterOnlyCheapBooks" (change)="showCheapBooksToggled($event)">
     <jhi-alert></jhi-alert>
     <br/>
     <div class="table-responsive" *ngIf="books">
