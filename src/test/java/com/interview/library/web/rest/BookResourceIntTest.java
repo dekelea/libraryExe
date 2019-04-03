@@ -1,5 +1,6 @@
 package com.interview.library.web.rest;
 
+import com.google.common.collect.Lists;
 import com.interview.library.LibraryApp;
 
 import com.interview.library.domain.Book;
@@ -14,22 +15,25 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 
 import static com.interview.library.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -155,7 +159,47 @@ public class BookResourceIntTest {
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE.toString())))
             .andExpect(jsonPath("$.[*].price").value(hasItem(DEFAULT_PRICE.intValue())));
     }
-    
+
+    @Test
+    @Transactional
+    public void getAllBooksBelowOrEqualToPrice() throws Exception {
+        BigDecimal maxBookPrice = new BigDecimal(20);
+
+        Book bookWithMaxCheapBookPrice = createBook("bookWithMaxCheapBookPrice",maxBookPrice);
+        Book bookWithPriceHigherThanThreshold = createBook("bookWithPriceHigherThanThreshold",maxBookPrice.add(new BigDecimal(0.1)));
+        Book bookWithPriceLowerThanThreshold = createBook("bookWithPriceLowerThanThreshold",maxBookPrice.subtract(new BigDecimal(0.1)));
+
+        ResultActions resultActions = restBookMockMvc.perform(get("/api/books?sort=id,desc").param("maxPrice", maxBookPrice.toString()));
+        assertResponseStatusAndContentType(resultActions,HttpStatus.OK,MediaType.APPLICATION_JSON_UTF8);
+        assertBooksInResult(resultActions, Lists.newArrayList(bookWithMaxCheapBookPrice,bookWithPriceLowerThanThreshold));
+        assertIdsNotInResult(resultActions,Lists.newArrayList(bookWithPriceHigherThanThreshold.getId()));
+    }
+
+
+
+    private void assertResponseStatusAndContentType(ResultActions resultActions,HttpStatus status, MediaType contentType) throws Exception {
+        resultActions
+            .andExpect(status().is(status.value()))
+            .andExpect(content().contentType(contentType));
+    }
+
+    private void assertIdsNotInResult(ResultActions resultActions,Collection<Long> ids) throws Exception {
+        for (long id: ids) {
+            resultActions
+                .andExpect(jsonPath("$.[*].id").value(not(hasItem(id))));
+        }
+    }
+
+    private void assertBooksInResult(ResultActions resultActions,Collection<Book> expectedBooksInResult) throws Exception {
+        for (Book expectedBookInResult : expectedBooksInResult) {
+            resultActions
+                .andExpect(jsonPath("$.[*].id").value(hasItem(expectedBookInResult.getId().intValue())))
+                .andExpect(jsonPath("$.[*].title").value(hasItem(expectedBookInResult.getTitle())))
+                .andExpect(jsonPath("$.[*].price").value(hasItem(convertToClosestNumericType(expectedBookInResult.getPrice()))));
+        }
+
+    }
+
     @Test
     @Transactional
     public void getBook() throws Exception {
@@ -257,5 +301,37 @@ public class BookResourceIntTest {
         assertThat(book1).isNotEqualTo(book2);
         book1.setId(null);
         assertThat(book1).isNotEqualTo(book2);
+    }
+
+    private Book createBook(String title,BigDecimal price) {
+        Book book = new Book().title(title).price(price);
+        bookRepository.saveAndFlush(book);
+        return book;
+    }
+
+    private Integer convertToIntegerIfExactMatch(String numericValue) {
+        Integer parsedValue = null;
+        try{
+            parsedValue = Integer.parseInt(numericValue);
+        }
+        catch(NumberFormatException nfe) {/* swallow silently */}
+        return parsedValue;
+    }
+
+    private Double convertToDoubleIfExactMatch(String numericValue) {
+        Double doubleValue =  Double.parseDouble(numericValue);
+        return doubleValue.toString().equals(numericValue) ? doubleValue : null;
+    }
+
+
+    private Object convertToClosestNumericType(BigDecimal value) {
+        Object closestNumericTypeOfTheValue = convertToIntegerIfExactMatch(value.toString());
+        if(closestNumericTypeOfTheValue == null) {
+            closestNumericTypeOfTheValue = convertToDoubleIfExactMatch(value.toString());
+            if(closestNumericTypeOfTheValue == null) {
+                closestNumericTypeOfTheValue = value;
+            }
+        }
+        return closestNumericTypeOfTheValue;
     }
 }

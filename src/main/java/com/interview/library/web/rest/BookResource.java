@@ -99,7 +99,7 @@ public class BookResource {
      * @return the ResponseEntity with status 200 (OK) and the list of books in body
      */
     @GetMapping(value = "/books", params = "maxPrice")
-    public ResponseEntity<List<Book>> getAllBooks(Pageable pageable, @RequestParam BigDecimal maxPrice) {
+    public ResponseEntity<List<Book>> getAllBooksBelowOrEqualToPrice(Pageable pageable, @RequestParam BigDecimal maxPrice) {
         log.debug("REST request to get a page of Books with price equal or lower than:" + maxPrice);
         Page<Book> page = bookService.findAllEqualOrLessThan(pageable, maxPrice);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/books");
