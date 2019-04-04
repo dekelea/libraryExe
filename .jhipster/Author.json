@@ -6,6 +6,10 @@
         {
             "fieldName": "name",
             "fieldType": "String"
+        },
+        {
+            "fieldName": "birthDate",
+            "fieldType": "LocalDate"
         }
     ],
     "changelogDate": "20190402075319",

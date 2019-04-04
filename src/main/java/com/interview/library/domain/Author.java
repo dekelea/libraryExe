@@ -7,6 +7,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,9 @@ public class Author implements Serializable {
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -46,6 +50,19 @@ public class Author implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public Author birthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+        return this;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
@@ -74,6 +91,7 @@ public class Author implements Serializable {
         return "Author{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", birthDate='" + getBirthDate() + "'" +
             "}";
     }
 }

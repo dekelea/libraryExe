@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 
@@ -43,6 +45,9 @@ public class AuthorResourceIntTest {
 
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
+
+    private static final LocalDate DEFAULT_BIRTH_DATE = LocalDate.ofEpochDay(0L);
+    private static final LocalDate UPDATED_BIRTH_DATE = LocalDate.now(ZoneId.systemDefault());
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -89,7 +94,8 @@ public class AuthorResourceIntTest {
      */
     public static Author createEntity(EntityManager em) {
         Author author = new Author()
-            .name(DEFAULT_NAME);
+            .name(DEFAULT_NAME)
+            .birthDate(DEFAULT_BIRTH_DATE);
         return author;
     }
 
@@ -114,6 +120,7 @@ public class AuthorResourceIntTest {
         assertThat(authorList).hasSize(databaseSizeBeforeCreate + 1);
         Author testAuthor = authorList.get(authorList.size() - 1);
         assertThat(testAuthor.getName()).isEqualTo(DEFAULT_NAME);
+        assertThat(testAuthor.getBirthDate()).isEqualTo(DEFAULT_BIRTH_DATE);
     }
 
     @Test
@@ -146,7 +153,8 @@ public class AuthorResourceIntTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(author.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
+            .andExpect(jsonPath("$.[*].birthDate").value(hasItem(DEFAULT_BIRTH_DATE.toString())));
     }
     
     @Test
@@ -160,7 +168,8 @@ public class AuthorResourceIntTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(author.getId().intValue()))
-            .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()));
+            .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
+            .andExpect(jsonPath("$.birthDate").value(DEFAULT_BIRTH_DATE.toString()));
     }
 
     @Test
@@ -184,7 +193,8 @@ public class AuthorResourceIntTest {
         // Disconnect from session so that the updates on updatedAuthor are not directly saved in db
         em.detach(updatedAuthor);
         updatedAuthor
-            .name(UPDATED_NAME);
+            .name(UPDATED_NAME)
+            .birthDate(UPDATED_BIRTH_DATE);
 
         restAuthorMockMvc.perform(put("/api/authors")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -196,6 +206,7 @@ public class AuthorResourceIntTest {
         assertThat(authorList).hasSize(databaseSizeBeforeUpdate);
         Author testAuthor = authorList.get(authorList.size() - 1);
         assertThat(testAuthor.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testAuthor.getBirthDate()).isEqualTo(UPDATED_BIRTH_DATE);
     }
 
     @Test
